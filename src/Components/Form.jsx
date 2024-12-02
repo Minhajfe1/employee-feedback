@@ -19,7 +19,7 @@ const FeedbackForm = () => {
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     mode: "onChange",
     defaultValues: {
@@ -35,51 +35,50 @@ const FeedbackForm = () => {
 
   const watchAllFields = watch();
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log("Form Data Submitted:", data);
     reset();
-  
-    fetch("https://zapier-webhook-url/hooks/catch/20831720/2isrrbc/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        // Check if the response is OK (status code in the range 200-299)
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); // Parse JSON only if the response is OK
-      })
-      .then((responseData) => {
-        console.log("Data successfully sent to Zapier:", responseData);
-        toast.success("Thanks For Your Feedback!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-        });
-      })
-      .catch((error) => {
-        console.error("Error sending data to Zapier:", error);
-        toast.error("Error sending feedback, please try again.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-        });
+
+    try {
+      const response = await fetch("https://hooks.zapier.com/hooks/catch/20831720/2isrrbc/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("Data successfully sent to Zapier:", responseData);
+      toast.success("Thanks For Your Feedback!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    } catch (error) {
+      console.error("Error sending data to Zapier:", error);
+      toast.error("Error sending feedback, please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
   };
+
   const handleClear = () => {
     reset();
   };
@@ -98,21 +97,12 @@ const FeedbackForm = () => {
     <div className="w-full max-w-3xl my-10 mx-auto bg-white p-8 rounded-xl shadow-lg ">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex justify-center mb-10">
-          <img
-            src={InvexTech}
-            alt="Logo"
-            className="h-24 w-52 border-b-4 border-[#42a9c4]"
-          />
+          <img src={InvexTech} alt="Logo" className="h-24 w-52 border-b-4 border-[#42a9c4]" />
         </div>
 
         <div className="flex space-x-4 mb-6">
           <div className="w-full">
-            <label
-              htmlFor="name"
-              className="block text-sm text-gray-700 font-medium mb-2"
-            >
-              Name
-            </label>
+            <label htmlFor="name" className="block text-sm text-gray-700 font-medium mb-2">Name</label>
             <input
               type="text"
               {...register("name", {
@@ -125,19 +115,10 @@ const FeedbackForm = () => {
               className="w-full capitalize px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4] text-md"
               placeholder="Enter your name"
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1" aria-live="polite">
-                {errors.name.message}
-              </p>
-            )}
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
           <div className="w-full">
-            <label
-              htmlFor="email"
-              className="block text-sm text-gray-700 font-medium mb-2"
-            >
-              Email
-            </label>
+            <label htmlFor="email" className="block text-sm text-gray-700 font-medium mb-2">Email</label>
             <input
               type="email"
               {...register("email", {
@@ -150,54 +131,27 @@ const FeedbackForm = () => {
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4] text-md"
               placeholder="Enter your email"
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1" aria-live="polite">
-                {errors.email.message}
-              </p>
-            )}
-          </div>{" "}
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+          </div>
         </div>
 
         <div className="flex space-x-4 mb-6">
           <div className="w-full">
-            <label
-              htmlFor="designation"
-              className="block text-sm text-gray-700 font-medium mb-2"
+            <label htmlFor="designation" className="block text-sm text-gray-700 font-medium mb-2">Designation</label>
+            <select
+              {...register("designation", { required: "Designation is required" })}
+              className="w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4] appearance-none"
             >
-              Designation
-            </label>
-            <div className="relative">
-              <select
-                {...register("designation", {
-                  required: "Designation is required",
-                })}
-                className="w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4] appearance-none"
-              >
-                <option value="">Select Designation</option>
-                {designations.map((designation, index) => (
-                  <option key={index} value={designation}>
-                    {designation}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#42a9c4] pointer-events-none">
-                &#x25BC;
-              </span>
-            </div>
-            {errors.designation && (
-              <p className="text-red-500 text-sm mt-1" aria-live="polite">
-                {errors.designation.message}
-              </p>
-            )}
+              <option value="">Select Designation</option>
+              {designations.map((designation, index) => (
+                <option key={index} value={designation}>{designation}</option>
+              ))}
+            </select>
+            {errors.designation && <p className="text-red-500 text-sm mt-1">{errors.designation.message}</p>}
           </div>
 
           <div className="w-full">
-            <label
-              htmlFor="joiningDate"
-              className="block text-sm text-gray-700 font-medium mb-2"
-            >
-              Joining Date
-            </label>
+            <label htmlFor="joiningDate" className="block text-sm text-gray-700 font-medium mb-2">Joining Date</label>
             <input
               type="date"
               {...register("joiningDate", {
@@ -207,46 +161,26 @@ const FeedbackForm = () => {
                     const selectedDate = new Date(value);
                     const currentDate = new Date();
                     currentDate.setHours(0, 0, 0, 0);
-                    return (
-                      selectedDate <= currentDate ||
-                      "Joining date cannot be in the future"
-                    );
+                    return selectedDate <= currentDate || "Joining date cannot be in the future";
                   },
                 },
               })}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4] text-md"
             />
-            {errors.joiningDate && (
-              <p className="text-red-500 text-sm mt-1" aria-live="polite">
-                {errors.joiningDate.message}
-              </p>
-            )}
+            {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate.message}</p>}
           </div>
         </div>
 
         <div className="flex space-x-4 mb-6">
           <div className="w-full">
-            <label
-              htmlFor="workEnvironment"
-              className="block text-sm text-gray-700 font-medium mb-2"
-            >
-              Work Environment
-            </label>
+            <label htmlFor="workEnvironment" className="block text-sm text-gray-700 font-medium mb-2">Work Environment</label>
             <div className="flex space-x-4">
-              {[
-                "Excellent",
-                "Good",
-                "Moderate",
-                "Slight Better",
-                "Need To Improve",
-              ].map((option) => (
+              {["Excellent", "Good", "Moderate", "Slight Better", "Need To Improve"].map((option) => (
                 <span
                   key={option}
                   onClick={() => setValue("workEnvironment", option)}
                   className={`px-4 py-2 whitespace-nowrap rounded-full cursor-pointer text-sm font-medium ${
-                    watchAllFields.workEnvironment === option
-                      ? "bg-[#42a9c4] text-white"
-                      : "bg-gray-200 text-gray-700"
+                    watchAllFields.workEnvironment === option ? "bg-[#42a9c4] text-white" : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   {option}
@@ -257,55 +191,26 @@ const FeedbackForm = () => {
         </div>
 
         <div className="mb-6">
-          <label
-            htmlFor="feedback"
-            className="flex justify-start text-sm text-gray-700 font-medium mb-2 mt-8"
-          >
-            Feedback:
-          </label>
+          <label htmlFor="feedback" className="flex justify-start text-sm text-gray-700 font-medium mb-2 mt-8">Feedback:</label>
           <textarea
-            {...register("feedback", {
-              required: "Feedback is required",
-            })}
+            {...register("feedback", { required: "Feedback is required" })}
             rows="4"
             className="w-full h-28 capitalize px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#42a9c4]"
           />
-          {errors.feedback && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.feedback.message}
-            </p>
-          )}
+          {errors.feedback && <p className="text-red-500 text-sm mt-1">{errors.feedback.message}</p>}
         </div>
 
         <div className="flex flex-col items-center space-y-2">
-          <label
-            htmlFor="rating"
-            className="block text-sm text-gray-700  font-semibold mb-2"
-          >
-            Rating:
-          </label>
-
+          <label htmlFor="rating" className="block text-sm text-gray-700 font-semibold mb-2">Rating:</label>
           <div className="flex flex-col items-center">
             <div className="flex items-center space-x-2">
               {[1, 2, 3, 4, 5].map((starValue) => {
                 const ratings = {
                   1: { unfilled: rat1, filled: ratfill1, value: "Excellent" },
-                  2: {
-                    unfilled: rat2,
-                    filled: ratfill2,
-                    value: "Very Satisfied",
-                  },
+                  2: { unfilled: rat2, filled: ratfill2, value: "Very Satisfied" },
                   3: { unfilled: rat3, filled: ratfill3, value: "Satisfied" },
-                  4: {
-                    unfilled: rat4,
-                    filled: ratfill4,
-                    value: "Dissatisfied",
-                  },
-                  5: {
-                    unfilled: rat5,
-                    filled: ratfill5,
-                    value: "Very Dissatisfied",
-                  },
+                  4: { unfilled: rat4, filled: ratfill4, value: "Dissatisfied" },
+                  5: { unfilled: rat5, filled: ratfill5, value: "Very Dissatisfied" },
                 };
 
                 return (
@@ -315,11 +220,7 @@ const FeedbackForm = () => {
                     className="cursor-pointer"
                   >
                     <img
-                      src={
-                        watchAllFields.rating === ratings[starValue].value
-                          ? ratings[starValue].filled
-                          : ratings[starValue].unfilled
-                      }
+                      src={watchAllFields.rating === ratings[starValue].value ? ratings[starValue].filled : ratings[starValue].unfilled}
                       alt={`rating-${starValue}`}
                       className="h-10 w-10"
                     />
@@ -328,9 +229,7 @@ const FeedbackForm = () => {
               })}
             </div>
             {watchAllFields.rating && (
-              <p className="mt-4 text-lg font-medium text-[#42a9c4]">
-                {watchAllFields.rating}
-              </p>
+              <p className="mt-4 text-lg font-medium text-[#42a9c4]">{watchAllFields.rating}</p>
             )}
           </div>
         </div>
@@ -345,6 +244,7 @@ const FeedbackForm = () => {
           </button>
           <button
             type="submit"
+            disabled={isSubmitting} // Disable while submitting
             className="w-32 font-semibold bg-[#42a9c4] text-white py-2 px-6 rounded-lg hover:opacity-75 transition duration-300 ease-in-out transform hover:scale-105"
           >
             Submit
