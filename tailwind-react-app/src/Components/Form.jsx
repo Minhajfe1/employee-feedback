@@ -38,33 +38,48 @@ const FeedbackForm = () => {
   const onSubmit = (data) => {
     console.log("Form Data Submitted:", data);
     reset();
-
-    fetch("/zapier-webhook/hooks/catch/20831720/2isrrbc/", {
+  
+    fetch("https://zapier-webhook-url/hooks/catch/20831720/2isrrbc/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        // Check if the response is OK (status code in the range 200-299)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Parse JSON only if the response is OK
+      })
       .then((responseData) => {
         console.log("Data successfully sent to Zapier:", responseData);
+        toast.success("Thanks For Your Feedback!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       })
       .catch((error) => {
         console.error("Error sending data to Zapier:", error);
+        toast.error("Error sending feedback, please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       });
-    toast.success("Thanks For Your Feedback !", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
   };
-
   const handleClear = () => {
     reset();
   };
@@ -261,7 +276,7 @@ const FeedbackForm = () => {
             </p>
           )}
         </div>
-{/* tset */}
+
         <div className="flex flex-col items-center space-y-2">
           <label
             htmlFor="rating"
